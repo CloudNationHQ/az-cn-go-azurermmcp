@@ -1,6 +1,6 @@
 # azurerm-mcp
 
-An MCP (Model Context Protocol) server that indexes, analyzes, and serves the terraform-provider-azurerm Go source code on demand to MCP compatible AI agents.
+An MCP (Model Context Protocol) server that indexes, analyzes, and serves the terraform provider azurerm go source code on demand to MCP compatible AI agents.
 
 ## Features
 
@@ -199,13 +199,13 @@ Get the full documentation for azurerm_private_endpoint including arguments.
 
 Show me provider examples for virtual machine deployments.
 
-**Cross-Reference with WAM MCP (CloudNation Terraform Modules)**
+**Cross-Reference with WAM MCP**
 
 Are there any missing key things or features if you compare the wam module agw mcp with the terraform providider mcp resource azurerm_application_gateway regarding the module examples?
 
 What does the CloudNation vnet module expose that azurerm_virtual_network doesn't enforce through validation?
 
-Compare the kv module examples from WAM with azurerm_key_vault schema - are there any attributes the module uses that have weak validations in the provider?
+Compare the kv module examples from WAM with azurerm_key_vault schema ,are there any attributes the module uses that have weak validations in the provider?
 
 Looking at the redis module in WAM, does it use any azurerm_redis_cache attributes that are marked ForceNew, and would those prevent in-place updates?
 
@@ -284,8 +284,8 @@ We welcome contributions from the community! Whether it's reporting a bug, sugge
 
 For more information, please see our contribution [guidelines](./CONTRIBUTING.md). <br><br>
 
-<a href="https://github.com/cloudnationhq/az-cn-azurerm-mcp/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=cloudnationhq/az-cn-azurerm-mcp" />
+<a href="https://github.com/cloudnationhq/az-cn-go-azurermmcp/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=cloudnationhq/az-cn-go-azurermmcp" />
 </a>
 
 ## License
