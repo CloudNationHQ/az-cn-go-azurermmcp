@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/CloudNationHQ/az-cn-go-azurermmcp/compare/v1.0.1...v1.0.2) (2025-11-01)
+
+
+### Bug Fixes
+
+* remove unused config yml file ([#5](https://github.com/CloudNationHQ/az-cn-go-azurermmcp/issues/5)) ([b1d6fdb](https://github.com/CloudNationHQ/az-cn-go-azurermmcp/commit/b1d6fdb809acf40569a35059afc169d4694b3601))
+
 ## [1.0.1](https://github.com/CloudNationHQ/az-cn-go-azurermmcp/compare/v1.0.0...v1.0.1) (2025-11-01)
 
 
