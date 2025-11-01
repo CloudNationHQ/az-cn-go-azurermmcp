@@ -382,6 +382,18 @@ func (db *DB) ClearRepositoryData(repositoryID int64) error {
 		}
 	}
 
+	if _, err := tx.Exec(`INSERT INTO repositories_fts(repositories_fts) VALUES('rebuild')`); err != nil {
+		return fmt.Errorf("failed to rebuild repositories_fts: %w", err)
+	}
+
+	if _, err := tx.Exec(`INSERT INTO repository_files_fts(repository_files_fts) VALUES('rebuild')`); err != nil {
+		return fmt.Errorf("failed to rebuild repository_files_fts: %w", err)
+	}
+
+	if _, err := tx.Exec(`INSERT INTO provider_resources_fts(provider_resources_fts) VALUES('rebuild')`); err != nil {
+		return fmt.Errorf("failed to rebuild provider_resources_fts: %w", err)
+	}
+
 	return tx.Commit()
 }
 
