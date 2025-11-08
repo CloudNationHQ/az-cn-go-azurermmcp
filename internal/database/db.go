@@ -94,6 +94,33 @@ type ProviderResourceSource struct {
 	ImporterSnippet      sql.NullString
 }
 
+type ProviderRelease struct {
+	ID                int64
+	RepositoryID      int64
+	Version           string
+	Tag               string
+	PreviousVersion   sql.NullString
+	PreviousTag       sql.NullString
+	CommitSHA         sql.NullString
+	PreviousCommitSHA sql.NullString
+	ReleaseDate       sql.NullString
+	ComparisonURL     sql.NullString
+	CreatedAt         time.Time
+}
+
+type ProviderReleaseEntry struct {
+	ID           int64
+	ReleaseID    int64
+	Section      string
+	EntryKey     string
+	Title        string
+	Details      sql.NullString
+	ResourceName sql.NullString
+	Identifier   sql.NullString
+	ChangeType   sql.NullString
+	OrderIndex   int
+}
+
 type ParseCacheEntry struct {
 	FilePath       string
 	ContentHash    string
@@ -372,6 +399,10 @@ func (db *DB) ClearRepositoryData(repositoryID int64) error {
 		return err
 	}
 
+	if _, err := tx.Exec(`DELETE FROM provider_releases WHERE repository_id = ?`, repositoryID); err != nil {
+		return err
+	}
+
 	tables := []string{
 		"repository_files",
 	}
@@ -498,6 +529,201 @@ func (db *DB) GetProviderResourceSource(resourceID int64) (*ProviderResourceSour
 		return nil, err
 	}
 	return &src, nil
+}
+
+func (db *DB) UpsertProviderRelease(r *ProviderRelease) (int64, error) {
+	_, err := db.conn.Exec(`
+		INSERT INTO provider_releases (
+			repository_id, version, tag, previous_version, previous_tag,
+			commit_sha, previous_commit_sha, release_date, comparison_url
+		)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(repository_id, version) DO UPDATE SET
+			tag = excluded.tag,
+			previous_version = excluded.previous_version,
+			previous_tag = excluded.previous_tag,
+			commit_sha = excluded.commit_sha,
+			previous_commit_sha = excluded.previous_commit_sha,
+			release_date = excluded.release_date,
+			comparison_url = excluded.comparison_url
+	`, r.RepositoryID, r.Version, r.Tag, r.PreviousVersion, r.PreviousTag, r.CommitSHA, r.PreviousCommitSHA, r.ReleaseDate, r.ComparisonURL)
+	if err != nil {
+		return 0, err
+	}
+
+	var id int64
+	if err := db.conn.QueryRow(`
+		SELECT id FROM provider_releases WHERE repository_id = ? AND version = ?
+	`, r.RepositoryID, r.Version).Scan(&id); err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (db *DB) ReplaceReleaseEntries(releaseID int64, entries []ProviderReleaseEntry) error {
+	tx, err := db.conn.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec(`DELETE FROM provider_release_entries WHERE release_id = ?`, releaseID); err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(`
+		INSERT INTO provider_release_entries (
+			release_id, section, entry_key, title, details,
+			resource_name, identifier, change_type, order_index
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for _, entry := range entries {
+		if entry.EntryKey == "" {
+			continue
+		}
+		if _, err := stmt.Exec(
+			releaseID,
+			entry.Section,
+			entry.EntryKey,
+			entry.Title,
+			entry.Details,
+			entry.ResourceName,
+			entry.Identifier,
+			entry.ChangeType,
+			entry.OrderIndex,
+		); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (db *DB) GetLatestProviderRelease(repositoryID int64) (*ProviderRelease, error) {
+	var r ProviderRelease
+	err := db.conn.QueryRow(`
+		SELECT id, repository_id, version, tag, previous_version, previous_tag,
+			commit_sha, previous_commit_sha, release_date, comparison_url, created_at
+		FROM provider_releases
+		WHERE repository_id = ?
+		ORDER BY
+			CASE WHEN release_date IS NULL OR release_date = '' THEN 1 ELSE 0 END,
+			release_date DESC,
+			created_at DESC
+		LIMIT 1
+	`, repositoryID).Scan(&r.ID, &r.RepositoryID, &r.Version, &r.Tag, &r.PreviousVersion, &r.PreviousTag, &r.CommitSHA, &r.PreviousCommitSHA, &r.ReleaseDate, &r.ComparisonURL, &r.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func (db *DB) GetProviderReleaseByVersion(repositoryID int64, version string) (*ProviderRelease, error) {
+	var r ProviderRelease
+	err := db.conn.QueryRow(`
+		SELECT id, repository_id, version, tag, previous_version, previous_tag,
+			commit_sha, previous_commit_sha, release_date, comparison_url, created_at
+		FROM provider_releases
+		WHERE repository_id = ? AND version = ?
+	`, repositoryID, version).Scan(&r.ID, &r.RepositoryID, &r.Version, &r.Tag, &r.PreviousVersion, &r.PreviousTag, &r.CommitSHA, &r.PreviousCommitSHA, &r.ReleaseDate, &r.ComparisonURL, &r.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func (db *DB) GetProviderReleaseByTag(repositoryID int64, tag string) (*ProviderRelease, error) {
+    var r ProviderRelease
+    err := db.conn.QueryRow(`
+        SELECT id, repository_id, version, tag, previous_version, previous_tag,
+            commit_sha, previous_commit_sha, release_date, comparison_url, created_at
+        FROM provider_releases
+        WHERE repository_id = ? AND tag = ?
+    `, repositoryID, tag).Scan(&r.ID, &r.RepositoryID, &r.Version, &r.Tag, &r.PreviousVersion, &r.PreviousTag, &r.CommitSHA, &r.PreviousCommitSHA, &r.ReleaseDate, &r.ComparisonURL, &r.CreatedAt)
+    if err != nil {
+        return nil, err
+    }
+    return &r, nil
+}
+
+func (db *DB) GetProviderReleaseEntries(releaseID int64) ([]ProviderReleaseEntry, error) {
+	rows, err := db.conn.Query(`
+		SELECT id, release_id, section, entry_key, title, details,
+			resource_name, identifier, change_type, order_index
+		FROM provider_release_entries
+		WHERE release_id = ?
+		ORDER BY order_index, id
+	`, releaseID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var entries []ProviderReleaseEntry
+	for rows.Next() {
+		var entry ProviderReleaseEntry
+		if err := rows.Scan(&entry.ID, &entry.ReleaseID, &entry.Section, &entry.EntryKey, &entry.Title, &entry.Details, &entry.ResourceName, &entry.Identifier, &entry.ChangeType, &entry.OrderIndex); err != nil {
+			return nil, err
+		}
+		entries = append(entries, entry)
+	}
+	return entries, rows.Err()
+}
+
+func (db *DB) GetProviderReleaseEntryByKey(releaseID int64, entryKey string) (*ProviderReleaseEntry, error) {
+	var entry ProviderReleaseEntry
+	err := db.conn.QueryRow(`
+		SELECT id, release_id, section, entry_key, title, details,
+			resource_name, identifier, change_type, order_index
+		FROM provider_release_entries
+		WHERE release_id = ? AND entry_key = ?
+	`, releaseID, entryKey).Scan(&entry.ID, &entry.ReleaseID, &entry.Section, &entry.EntryKey, &entry.Title, &entry.Details, &entry.ResourceName, &entry.Identifier, &entry.ChangeType, &entry.OrderIndex)
+	if err != nil {
+		return nil, err
+	}
+	return &entry, nil
+}
+
+func (db *DB) GetLatestReleaseWithEntries(repositoryID int64) (*ProviderRelease, []ProviderReleaseEntry, error) {
+	release, err := db.GetLatestProviderRelease(repositoryID)
+	if err != nil {
+		return nil, nil, err
+	}
+	entries, err := db.GetProviderReleaseEntries(release.ID)
+	if err != nil {
+		return nil, nil, err
+	}
+	return release, entries, nil
+}
+
+func (db *DB) GetReleaseWithEntriesByVersion(repositoryID int64, version string) (*ProviderRelease, []ProviderReleaseEntry, error) {
+	release, err := db.GetProviderReleaseByVersion(repositoryID, version)
+	if err != nil {
+		return nil, nil, err
+	}
+	entries, err := db.GetProviderReleaseEntries(release.ID)
+	if err != nil {
+		return nil, nil, err
+	}
+	return release, entries, nil
+}
+
+func (db *DB) GetReleaseWithEntriesByTag(repositoryID int64, tag string) (*ProviderRelease, []ProviderReleaseEntry, error) {
+    release, err := db.GetProviderReleaseByTag(repositoryID, tag)
+    if err != nil {
+        return nil, nil, err
+    }
+    entries, err := db.GetProviderReleaseEntries(release.ID)
+    if err != nil {
+        return nil, nil, err
+    }
+    return release, entries, nil
 }
 
 func (db *DB) ListProviderResources(kind string, limit int) ([]ProviderResource, error) {

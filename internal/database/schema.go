@@ -180,6 +180,43 @@ CREATE TABLE IF NOT EXISTS provider_resource_sources (
 
 CREATE INDEX IF NOT EXISTS idx_provider_sources_resource ON provider_resource_sources(resource_id);
 
+CREATE TABLE IF NOT EXISTS provider_releases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    repository_id INTEGER NOT NULL,
+    version TEXT NOT NULL,
+    tag TEXT NOT NULL,
+    previous_version TEXT,
+    previous_tag TEXT,
+    commit_sha TEXT,
+    previous_commit_sha TEXT,
+    release_date TEXT,
+    comparison_url TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (repository_id) REFERENCES repositories(id) ON DELETE CASCADE,
+    UNIQUE(repository_id, version)
+);
+
+CREATE INDEX IF NOT EXISTS idx_provider_releases_repo ON provider_releases(repository_id);
+CREATE INDEX IF NOT EXISTS idx_provider_releases_tag ON provider_releases(tag);
+
+CREATE TABLE IF NOT EXISTS provider_release_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    release_id INTEGER NOT NULL,
+    section TEXT NOT NULL,
+    entry_key TEXT NOT NULL,
+    title TEXT NOT NULL,
+    details TEXT,
+    resource_name TEXT,
+    identifier TEXT,
+    change_type TEXT,
+    order_index INTEGER DEFAULT 0,
+    FOREIGN KEY (release_id) REFERENCES provider_releases(id) ON DELETE CASCADE,
+    UNIQUE(release_id, entry_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_release_entries_release ON provider_release_entries(release_id);
+CREATE INDEX IF NOT EXISTS idx_release_entries_identifier ON provider_release_entries(identifier);
+
 -- Parse cache for incremental parsing
 CREATE TABLE IF NOT EXISTS parse_cache (
     file_path TEXT PRIMARY KEY,
