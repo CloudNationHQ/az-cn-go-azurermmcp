@@ -4,7 +4,7 @@ An MCP (Model Context Protocol) server that indexes, analyzes, and serves the te
 
 ## Features
 
-**Provider Discovery**
+### Provider Discovery
 
 List and search all AzureRM resources and data sources with fast, FTS-backed lookups
 
