@@ -187,6 +187,20 @@ List data sources that query network-related Azure resources.
 
 Find resources in the compute service with CustomizeDiff logic.
 
+**Releases & Versioning**
+
+What’s the latest AzureRM provider release? Summarize features, enhancements, and bug fixes.
+
+What shipped in v4.48.0? Include the tag range and release date.
+
+Show the code diff snippet for azurerm_windows_web_app adding virtual_network_image_pull_enabled in v4.52.0.
+
+Show the code change for the new resource azurerm_api_management_workspace_api_version_set in v4.52.0.
+
+Compare v4.51.0 → v4.52.0 and list any new resources and notable fixes.
+
+If a version isn’t indexed yet, backfill v4.48.0 and then summarize it.
+
 **Testing & Documentation**
 
 List all acceptance tests for azurerm_kubernetes_cluster.
@@ -251,6 +265,8 @@ Initial full sync takes ~20 seconds and indexes 9,000+ Go files. Subsequent incr
 Deleting the database file will cause a full rebuild the next time the server is called.
 
 The parser extracts schema metadata using Go AST analysis for accuracy.
+
+Release summaries maintain the most recent 40 versions by default; older tags can be backfilled on demand when needed.
 
 ## Direct Database Access
 

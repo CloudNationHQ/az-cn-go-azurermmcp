@@ -4,7 +4,9 @@ package mcp
 import (
 	"bufio"
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -59,6 +61,49 @@ func NewServer(dbPath, token, org, repo string) *Server {
 		repo:   repo,
 		jobs:   make(map[string]*SyncJob),
 	}
+}
+
+func (s *Server) repoShortName() string {
+	if strings.Contains(s.repo, "/") {
+		parts := strings.SplitN(s.repo, "/", 2)
+		return parts[1]
+	}
+	return s.repo
+}
+
+func (s *Server) releaseSummaryIfUpdated(updated []string) string {
+	short := strings.ToLower(s.repoShortName())
+	for _, name := range updated {
+		if strings.ToLower(name) == short {
+			return s.latestReleaseSummaryText()
+		}
+	}
+	return ""
+}
+
+func (s *Server) latestReleaseSummaryText() string {
+	if s.db == nil {
+		return ""
+	}
+	repo, err := s.primaryRepository()
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			log.Printf("Warning: unable to load repository metadata for release summary: %v", err)
+		}
+		return ""
+	}
+	release, entries, err := s.db.GetLatestReleaseWithEntries(repo.ID)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			log.Printf("Warning: failed to load latest release summary: %v", err)
+		}
+		return ""
+	}
+	fullName := repo.FullName
+	if fullName == "" {
+		fullName = repo.Name
+	}
+	return formatter.ReleaseSummary(fullName, release, entries)
 }
 
 type SyncJob struct {
@@ -193,6 +238,55 @@ func (s *Server) handleToolsList(msg Message) {
 						"description": "Optional job ID to inspect",
 					},
 				},
+			},
+		},
+		{
+			"name":        "get_release_summary",
+			"description": "Render the latest or specified release summary for the provider",
+			"inputSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"version": map[string]any{
+						"type":        "string",
+						"description": "Optional provider version (e.g. 4.52.0). Defaults to the latest synced release.",
+					},
+				},
+			},
+		},
+		{
+			"name":        "get_release_snippet",
+			"description": "Show the code diff snippet associated with a release entry",
+			"inputSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"version": map[string]any{
+						"type":        "string",
+						"description": "Release version to inspect (e.g. 4.52.0)",
+					},
+					"query": map[string]any{
+						"type":        "string",
+						"description": "Resource name or text excerpt from the release entry",
+					},
+					"max_context_lines": map[string]any{
+						"type":        "integer",
+						"description": "Optional limit for diff lines (default 24)",
+					},
+				},
+				"required": []string{"version", "query"},
+			},
+		},
+		{
+			"name":        "backfill_release",
+			"description": "Parse and store a specific release from CHANGELOG without a full sync",
+			"inputSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"version": map[string]any{
+						"type":        "string",
+						"description": "Target version (e.g. 4.48.0 or v4.48.0)",
+					},
+				},
+				"required": []string{"version"},
 			},
 		},
 		{
@@ -604,6 +698,12 @@ func (s *Server) handleToolsCall(msg Message) {
 		result = s.handleSyncProviderUpdates()
 	case "sync_status":
 		result = s.handleSyncStatus(params.Arguments)
+	case "get_release_summary":
+		result = s.handleGetReleaseSummary(params.Arguments)
+	case "get_release_snippet":
+		result = s.handleGetReleaseSnippet(params.Arguments)
+	case "backfill_release":
+		result = s.handleBackfillRelease(params.Arguments)
 	case "list_resources":
 		result = s.handleListResources(params.Arguments)
 	case "search_resources":
@@ -694,6 +794,14 @@ func (s *Server) handleSyncProviderUpdates() map[string]any {
 		progress.UpdatedRepos,
 		progress.Errors,
 	)
+
+	if summary := s.releaseSummaryIfUpdated(progress.UpdatedRepos); summary != "" {
+		if strings.TrimSpace(text) != "" {
+			text = strings.TrimSpace(text) + "\n\n" + summary
+		} else {
+			text = summary
+		}
+	}
 
 	return SuccessResponse(text)
 }
