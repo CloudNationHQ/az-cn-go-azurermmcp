@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/CloudNationHQ/az-cn-go-azurermmcp/compare/v1.0.2...v1.1.0) (2025-11-08)
+
+
+### Features
+
+* add release querying and snippet tools ([#7](https://github.com/CloudNationHQ/az-cn-go-azurermmcp/issues/7)) ([467eb55](https://github.com/CloudNationHQ/az-cn-go-azurermmcp/commit/467eb550b563f9b4f5d1140e2de21cedc483a6bf))
+
 ## [1.0.2](https://github.com/CloudNationHQ/az-cn-go-azurermmcp/compare/v1.0.1...v1.0.2) (2025-11-01)
 
 
