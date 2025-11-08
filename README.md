@@ -4,7 +4,7 @@ An MCP (Model Context Protocol) server that indexes, analyzes, and serves the te
 
 ## Features
 
-### Provider Discovery
+[**Provider Discovery**](#provider-discovery)
 
 List and search all AzureRM resources and data sources with fast, FTS-backed lookups
 
@@ -103,7 +103,7 @@ make build
 
 **Once configured, you can ask any agentic agent that supports additional MCP servers:**
 
-## Update Behavior & Breaking Changes
+**Update Behavior & Breaking Changes**
 
 Can I change the location on azurerm_resource_group without recreating it, and if not, why?
 
@@ -115,7 +115,7 @@ Explain why changing the SKU on azurerm_storage_account forces recreation and su
 
 Will modifying network_profile on azurerm_container_group trigger a recreation?
 
-## Resource Comparison & Discovery
+**Resource Comparison & Discovery**
 
 What are the differences between azurerm_linux_virtual_machine and azurerm_windows_virtual_machine?
 
