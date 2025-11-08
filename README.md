@@ -4,7 +4,7 @@ An MCP (Model Context Protocol) server that indexes, analyzes, and serves the te
 
 ## Features
 
-[**Provider Discovery**](#provider-discovery)
+**Provider Discovery**
 
 List and search all AzureRM resources and data sources with fast, FTS-backed lookups
 
@@ -103,7 +103,7 @@ make build
 
 **Once configured, you can ask any agentic agent that supports additional MCP servers:**
 
-**Update Behavior & Breaking Changes**
+[**Update Behavior & Breaking Changes**](#update-behavior--breaking-changes)
 
 Can I change the location on azurerm_resource_group without recreating it, and if not, why?
 
@@ -115,7 +115,7 @@ Explain why changing the SKU on azurerm_storage_account forces recreation and su
 
 Will modifying network_profile on azurerm_container_group trigger a recreation?
 
-**Resource Comparison & Discovery**
+[**Resource Comparison & Discovery**](#resource-comparison--discovery)
 
 What are the differences between azurerm_linux_virtual_machine and azurerm_windows_virtual_machine?
 
@@ -127,7 +127,7 @@ Find all resources that have similar schemas to azurerm_storage_account, ranked 
 
 What's the schema overlap between azurerm_app_service and azurerm_function_app?
 
-**Schema Deep Dive**
+[**Schema Deep Dive**](#schema-deep-dive)
 
 Show me all ForceNew attributes on azurerm_virtual_network and explain each one.
 
@@ -139,7 +139,7 @@ Show the full schema for azurerm_private_endpoint with type details and validati
 
 What conflicts exist on azurerm_api_management_certificate attributes?
 
-**Validation Analysis**
+[**Validation Analysis**](#validation-analysis)
 
 What validations are missing from azurerm_storage_account schema?
 
@@ -151,7 +151,7 @@ Check if azurerm_key_vault has appropriate name format validations.
 
 Find validation gaps in azurerm_postgresql_server configuration.
 
-**Dependency Tracing**
+[**Dependency Tracing**](#dependency-tracing)
 
 Show me all dependencies for the network_rules attribute on azurerm_storage_account.
 
@@ -163,7 +163,7 @@ What attributes require subnet_id on azurerm_app_service?
 
 Visualize the dependency graph for identity blocks in azurerm_virtual_machine_scale_set.
 
-**Provider Source Inspection**
+[**Provider Source Inspection**](#provider-source-inspection)
 
 Show me the CustomizeDiff logic for azurerm_virtual_network.
 
@@ -175,7 +175,7 @@ Display the full Go schema definition for azurerm_private_endpoint.
 
 What state upgraders are defined for azurerm_app_service?
 
-**Search & Discovery**
+[**Search & Discovery**](#search--discovery)
 
 Search the provider code for suppress.CaseDifference usage.
 
@@ -187,7 +187,7 @@ List data sources that query network-related Azure resources.
 
 Find resources in the compute service with CustomizeDiff logic.
 
-**Releases & Versioning**
+[**Releases & Versioning**](#releases--versioning)
 
 What’s the latest AzureRM provider release? Summarize features, enhancements, and bug fixes.
 
@@ -201,7 +201,7 @@ Compare v4.51.0 → v4.52.0 and list any new resources and notable fixes.
 
 If a version isn’t indexed yet, backfill v4.48.0 and then summarize it.
 
-**Testing & Documentation**
+[**Testing & Documentation**](#testing--documentation)
 
 List all acceptance tests for azurerm_kubernetes_cluster.
 
@@ -213,7 +213,7 @@ Get the full documentation for azurerm_private_endpoint including arguments.
 
 Show me provider examples for virtual machine deployments.
 
-**Cross-Reference with WAM MCP**
+[**Cross-Reference with WAM MCP**](#cross-reference-with-wam-mcp)
 
 Are there any missing key things or features if you compare the wam module agw mcp with the terraform providider mcp resource azurerm_application_gateway regarding the module examples?
 
@@ -235,7 +235,7 @@ Are there sensitive attributes in azurerm_container_registry that the acr module
 
 Compare the default values in the CloudNation func module with the azurerm_function_app schema defaults.
 
-**Sync and Maintenance**
+[**Sync and Maintenance**](#sync-and-maintenance)
 
 Run a full sync of the provider and report the job ID; then show the sync status for that job ID.
 
